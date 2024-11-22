@@ -8,8 +8,8 @@ embed-resources: true
 
 ```{r}
 #| label: setup
+#| message: false
 library(tidyverse)
-
 ```
 
 ## Random Babies Simulation
@@ -80,21 +80,13 @@ baby_table |>
   mutate(prop = n/sum(n)) |>
   ggplot(mapping = aes(x = ncorrect, y = prop)) +
   geom_bar(stat = "identity") +
-  labs(title = "",
+  labs(title = "Proportion of Babies Returned Correctly Under Randomized Conditions",
        y = "",
-       subtitle = "",
-       x = "baby")
-
+       subtitle = "y-axis represeting Proportion",
+       x = "Number of Babies")
+  
 ```
 :::
-
-```{r}
-#| label: visualization-for-random-babies
-
-results|>
-  tibble()
-  geom_bar(mapping = aes(y = after_stat(results) / sum(after_stat(results))))
-```
 
 ## Central Limit Theorem -- Optional & Somewhat Spicy
 
@@ -126,8 +118,9 @@ I've provided some skeleton code to get you started. :)
 
 ```{r}
 simulate_means <- function(n, df){
-  map_dbl(.x = ___, 
-          .f = ~rchisq(n = 100, ___) %>% mean()
+  map_dbl(.x = 1:100, 
+          .f = ~rchisq(n = n, df = df) |> 
+          mean()
           )
 }
 ```
@@ -138,7 +131,10 @@ simulate_means <- function(n, df){
 -  **`df` = 10**
 
 ```{r}
-grid <- crossing(n = ___, 
+grid <- crossing(n = c(10,
+                       100,
+                       1000,
+                       10000), 
                  df = 5)
 ```
 
@@ -151,19 +147,28 @@ You will want to use the `unnest()` function to extract the results of the
 
 ```{r}
 all_simulations <- grid |> 
-  mutate(simulated_means = pmap(.l = list(___), 
-                                .f = simulate_means)
+  mutate(simulated_m = pmap(.l = list(n = n, df = df), 
+                            .f = simulate_means)
          ) |> 
-  unnest(___) 
-
+  unnest(simulated_m) 
 ```
 
 **7. Create a table of the means from each of the simulations (10, 100, 1000, and 10000).** 
 Hint: Make sure your columns have descriptive names!
 
-```{r}
-#| label: table-of-simulated Means
+I got help from this website on how to make a suffix instead of a prefix:
+https://stackoverflow.com/questions/63061947/r-changing-column-names-in-pivot-wider-suffix-to-prefix
 
+```{r}
+#| label: table-of-simulated-means
+
+all_simulations |>
+  select(!df) |>
+  unnest(simulated_m) |>
+  pivot_wider(names_from = n, 
+              values_from = simulated_m,
+              names_glue = "{n}_simulations",
+              values_fn = mean) 
 
 ```
 
