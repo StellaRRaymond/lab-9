@@ -37,9 +37,11 @@ randomBabies <- function(nBabies = 4){
   baby_tib <- tibble(pnum  = 1:nBabies,
                      bbnum = sample(1:nBabies, 
                                       size = nBabies, 
-                                      replace = FALSE))|>
-  mutate(paired = if_else((pnum == bbnum), "TRUE", "FALSE"))|>
-  filter(paired == "TRUE")|>
+                                      replace = FALSE)) |>
+  mutate(paired = if_else((pnum == bbnum), 
+                          "TRUE", 
+                          "FALSE")) |>
+  filter(paired == "TRUE") |>
   nrow()
   return(baby_tib)}
 
@@ -60,8 +62,8 @@ You may find the following code helpful:
 #| label: table-for-random-babies
 baby_table <- enframe(results, 
         name = "simulation_number", 
-        value = "ncorrect")|>
-  group_by(ncorrect)|>
+        value = "ncorrect") |>
+  group_by(ncorrect) |>
   count() |>
   ungroup()
 #  pivot_wider(names_from = ncorrect, values_from = n)
@@ -78,12 +80,13 @@ You may find the following code helpful:
 
 baby_table |>
   mutate(prop = n/sum(n)) |>
-  ggplot(mapping = aes(x = ncorrect, y = prop)) +
+  ggplot(mapping = aes(x = ncorrect, 
+                       y = prop)) +
   geom_bar(stat = "identity") +
-  labs(title = "Proportion of Babies Returned Correctly Under Randomized Conditions",
+  labs(title = "Proportion of Babies Returned Correctly To Parents Under Randomized Conditions",
        y = "",
-       subtitle = "y-axis represeting Proportion",
-       x = "Number of Babies")
+       subtitle = "y-axis represeting proportion",
+       x = "Correct Babies Returned")
   
 ```
 :::
@@ -147,9 +150,9 @@ You will want to use the `unnest()` function to extract the results of the
 
 ```{r}
 all_simulations <- grid |> 
-  mutate(simulated_m = pmap(.l = list(n = n, df = df), 
-                            .f = simulate_means)
-         ) |> 
+  mutate(simulated_m = pmap(.l = list(n = n,
+                                      df = df), 
+                            .f = simulate_means)) |> 
   unnest(simulated_m) 
 ```
 
@@ -181,8 +184,21 @@ sizes between the simulations.
 
 ```{r}
 #| label: plot-of-simulated Means
-
-
+all_simulations |>
+  mutate(n = as.character(n), 
+         n = fct_recode(n, 
+             `10 Simulations` = "10", 
+             `100 Simulations` = "100", 
+             `1000 Simulations` = "1000", 
+             `10000 Simulations` = "10000")
+         ) |>
+  ggplot(mapping = aes(x = simulated_m)) +
+  geom_histogram() +
+  facet_wrap(~n) +
+  labs(title = "Distribution of Simulated Means Based on Number of Simulations",
+       subtitle = "y-axis representing count",
+       x = "Simulated Means",
+       y = "")
 ```
 
 ## Challenge 9
